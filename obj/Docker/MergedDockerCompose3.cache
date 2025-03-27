@@ -1,0 +1,149 @@
+name: dockercompose14620997158693940777
+services:
+  ambev.developerevaluation.webapi:
+    build:
+      context: C:\Users\leona\Downloads\teste\template\backend
+      dockerfile: Dockerfile
+      args:
+        BUILD_CONFIGURATION: Debug
+      labels:
+        com.microsoft.created-by: visual-studio
+        com.microsoft.visual-studio.project-name: Ambev.DeveloperEvaluation.WebApi
+      target: base
+    entrypoint:
+      - dotnet
+      - --roll-forward
+      - Major
+      - /VSTools/DistrolessHelper/DistrolessHelper.dll
+      - --wait
+    environment:
+      ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      NUGET_FALLBACK_PACKAGES: ""
+    image: ambevdeveloperevaluationwebapi:dev
+    labels:
+      com.microsoft.visualstudio.debuggee.arguments: ' --additionalProbingPath /.nuget/packages  "/app/bin/Debug/net8.0/Ambev.DeveloperEvaluation.WebApi.dll"'
+      com.microsoft.visualstudio.debuggee.killprogram: dotnet --roll-forward Major /VSTools/DistrolessHelper/DistrolessHelper.dll --stop dotnet
+      com.microsoft.visualstudio.debuggee.program: dotnet
+      com.microsoft.visualstudio.debuggee.workingdirectory: /app
+    networks:
+      default: null
+    tty: true
+    volumes:
+      - type: bind
+        source: C:\Users\leona\Downloads\teste\template\backend\src\Ambev.DeveloperEvaluation.WebApi
+        target: /app
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\Downloads\teste\template\backend
+        target: /src
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\vsdbg\vs2017u5
+        target: /remote_debugger
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\.nuget\packages
+        target: /.nuget/packages
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\AppData\Roaming\ASP.NET\Https
+        target: /root/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\AppData\Roaming\ASP.NET\Https
+        target: /home/app/.aspnet/https
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\AppData\Roaming\Microsoft\UserSecrets
+        target: /root/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Users\leona\AppData\Roaming\Microsoft\UserSecrets
+        target: /home/app/.microsoft/usersecrets
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\linux-x64\net8.0
+        target: /VSTools
+        read_only: true
+        bind:
+          create_host_path: true
+      - type: bind
+        source: C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\HotReload
+        target: /HotReloadAgent
+        read_only: true
+        bind:
+          create_host_path: true
+  migrations:
+    build:
+      context: C:\Users\leona\Downloads\teste\template\backend
+      dockerfile: Dockerfile
+    command:
+      - dotnet
+      - ef
+      - database
+      - update
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+        required: true
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=DeveloperEvaluation;User Id=sa;Password=123@store;TrustServerCertificate=true
+    networks:
+      default: null
+  sqlserver:
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: 123@store
+    healthcheck:
+      test:
+        - CMD
+        - sqlcmd
+        - -S
+        - localhost
+        - -U
+        - sa
+        - -P
+        - 123@store
+        - -Q
+        - SELECT 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    image: mcr.microsoft.com/mssql/server
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 1433
+        published: "1433"
+        protocol: tcp
+  webapi:
+    build:
+      context: C:\Users\leona\Downloads\teste\template\backend
+      dockerfile: Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_started
+        required: true
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=DeveloperEvaluation;User Id=sa;Password=123@store;TrustServerCertificate=true
+    networks:
+      default: null
+networks:
+  default:
+    name: dockercompose14620997158693940777_default

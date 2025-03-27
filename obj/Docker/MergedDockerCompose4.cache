@@ -1,0 +1,33 @@
+name: dockercompose14620997158693940777
+services:
+  sqlserver:
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: 123@store
+    healthcheck:
+      test:
+        - CMD
+        - sqlcmd
+        - -S
+        - localhost
+        - -U
+        - sa
+        - -P
+        - 123@store
+        - -Q
+        - SELECT 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    image: mcr.microsoft.com/mssql/server
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 1433
+        published: "1433"
+        protocol: tcp
+networks:
+  default:
+    name: dockercompose14620997158693940777_default

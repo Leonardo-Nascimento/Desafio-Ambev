@@ -1,0 +1,62 @@
+name: dockercompose14620997158693940777
+services:
+  migrations:
+    build:
+      context: C:\Users\leona\Downloads\teste\template\backend
+      dockerfile: Dockerfile
+    command:
+      - dotnet
+      - ef
+      - database
+      - update
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+        required: true
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=DeveloperEvaluation;User Id=sa;Password=123@store;TrustServerCertificate=true
+    networks:
+      default: null
+  sqlserver:
+    container_name: sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: 123@store
+    healthcheck:
+      test:
+        - CMD
+        - sqlcmd
+        - -S
+        - localhost
+        - -U
+        - sa
+        - -P
+        - 123@store
+        - -Q
+        - SELECT 1
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    image: mcr.microsoft.com/mssql/server
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 1433
+        published: "1433"
+        protocol: tcp
+  webapi:
+    build:
+      context: C:\Users\leona\Downloads\teste\template\backend
+      dockerfile: Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_started
+        required: true
+    environment:
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=DeveloperEvaluation;User Id=sa;Password=123@store;TrustServerCertificate=true
+    networks:
+      default: null
+networks:
+  default:
+    name: dockercompose14620997158693940777_default
